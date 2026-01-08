@@ -507,7 +507,17 @@ async def create_task(req: TaskCreateRequest, admin = Depends(get_admin_user)):
     }
     
     await db.tasks.insert_one(task_doc)
-    return {"success": True, "task": task_doc}
+    
+    # Return without _id
+    return {"success": True, "task": {
+        "task_id": task_doc["task_id"],
+        "title": task_doc["title"],
+        "description": task_doc["description"],
+        "type": task_doc["type"],
+        "url": task_doc["url"],
+        "reward_points": task_doc["reward_points"],
+        "active": task_doc["active"]
+    }}
 
 @api_router.delete("/admin/tasks/{task_id}")
 async def delete_task(task_id: str, admin = Depends(get_admin_user)):
