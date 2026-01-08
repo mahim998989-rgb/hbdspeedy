@@ -189,6 +189,10 @@ async def telegram_auth(auth_req: TelegramAuthRequest):
 
 @api_router.get("/user/profile")
 async def get_user_profile(current_user = Depends(get_current_user)):
+    # Check if it's an admin token (has 'username' but no 'telegram_id')
+    if 'telegram_id' not in current_user:
+        raise HTTPException(status_code=403, detail="Admin cannot access user profile")
+    
     user = await db.users.find_one({"telegram_id": current_user['telegram_id']}, {"_id": 0})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
