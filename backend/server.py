@@ -119,9 +119,16 @@ def calculate_join_bonus():
     """Calculate join bonus based on current date"""
     event_start = datetime(2026, 1, 9, tzinfo=timezone.utc)
     now = datetime.now(timezone.utc)
-    days_passed = (now - event_start).days
     
-    bonus = 1200 - (days_passed * 100)
+    # Calculate days since event start (0 for Jan 9, 1 for Jan 10, etc.)
+    days_since_start = (now.date() - event_start.date()).days
+    
+    # If before event start, give maximum bonus
+    if days_since_start < 0:
+        return 1200
+    
+    # Jan 9 = 1200, Jan 10 = 1100, Jan 11 = 1000, etc.
+    bonus = 1200 - (days_since_start * 100)
     return max(100, bonus)
 
 def get_countdown_data():
