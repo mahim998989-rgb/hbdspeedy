@@ -159,7 +159,7 @@ async def get_countdown():
 @api_router.post("/auth/telegram")
 async def telegram_auth(auth_req: TelegramAuthRequest):
     """Authenticate Telegram user"""
-    user = await db.users.find_one({"telegram_id": auth_req.telegram_id})
+    user = await db.users.find_one({"telegram_id": auth_req.telegram_id}, {"_id": 0})
     
     if not user:
         # Create new user
