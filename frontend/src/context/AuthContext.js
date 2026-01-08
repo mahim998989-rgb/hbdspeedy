@@ -55,6 +55,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const authenticateDemoUser = async () => {
+    try {
+      // Create a demo user for testing
+      const demoTelegramId = 999999999;
+      const response = await axios.post(`${API}/auth/telegram`, {
+        telegram_id: demoTelegramId,
+        username: 'demo_user',
+        first_name: 'Demo'
+      });
+
+      const { token: newToken, user: userData } = response.data;
+      setToken(newToken);
+      setUser(userData);
+      localStorage.setItem('token', newToken);
+    } catch (error) {
+      console.error('Demo authentication failed:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchUserProfile = async () => {
     try {
       const response = await axios.get(`${API}/user/profile`, {
