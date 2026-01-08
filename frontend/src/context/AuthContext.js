@@ -1,10 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import axios from 'axios';
+import apiClient from '../utils/api';
 
 const AuthContext = createContext();
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -38,7 +35,7 @@ export const AuthProvider = ({ children }) => {
 
   const authenticateTelegramUser = async (telegramUser) => {
     try {
-      const response = await axios.post(`${API}/auth/telegram`, {
+      const response = await apiClient.post('/auth/telegram', {
         telegram_id: telegramUser.id,
         username: telegramUser.username || telegramUser.first_name,
         first_name: telegramUser.first_name
@@ -59,7 +56,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Create a demo user for testing
       const demoTelegramId = 999999999;
-      const response = await axios.post(`${API}/auth/telegram`, {
+      const response = await apiClient.post('/auth/telegram', {
         telegram_id: demoTelegramId,
         username: 'demo_user',
         first_name: 'Demo'
@@ -78,9 +75,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await axios.get(`${API}/user/profile`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await apiClient.get('/user/profile');
       setUser(response.data);
     } catch (error) {
       console.error('Failed to fetch profile:', error);
@@ -92,7 +87,7 @@ export const AuthProvider = ({ children }) => {
 
   const adminLogin = async (username, password) => {
     try {
-      const response = await axios.post(`${API}/admin/login`, {
+      const response = await apiClient.post('/admin/login', {
         username,
         password
       });
