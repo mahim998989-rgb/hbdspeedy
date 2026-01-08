@@ -117,7 +117,7 @@ async def get_admin_user(credentials: HTTPAuthorizationCredentials = Depends(sec
 
 def calculate_join_bonus():
     """Calculate join bonus based on current date"""
-    event_start = datetime(2025, 1, 9, tzinfo=timezone.utc)
+    event_start = datetime(2026, 1, 9, tzinfo=timezone.utc)
     now = datetime.now(timezone.utc)
     days_passed = (now - event_start).days
     
@@ -126,7 +126,7 @@ def calculate_join_bonus():
 
 def get_countdown_data():
     """Get countdown data"""
-    target = datetime(2025, 1, 21, 0, 0, 0, tzinfo=timezone.utc)
+    target = datetime(2026, 1, 21, 0, 0, 0, tzinfo=timezone.utc)
     now = datetime.now(timezone.utc)
     diff = target - now
     
