@@ -95,7 +95,12 @@ const TapForFun = () => {
                 src={settings.tap_video_url}
                 className={`w-full rounded-lg ${!videoPlaying ? 'hidden' : ''}`}
                 onEnded={() => setVideoPlaying(false)}
+                onError={(e) => {
+                  console.error('Video error:', e);
+                  setVideoPlaying(false);
+                }}
                 playsInline
+                muted={false}
                 data-testid="tap-video"
               />
               
