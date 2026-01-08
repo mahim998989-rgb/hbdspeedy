@@ -29,7 +29,7 @@ ADMIN_TELEGRAM_USERNAME = os.environ.get('ADMIN_TELEGRAM_USERNAME', 'Noone55550'
 
 def get_countdown_text():
     """Generate countdown text"""
-    target = datetime(2025, 1, 21, 0, 0, 0, tzinfo=timezone.utc)
+    target = datetime(2026, 1, 21, 0, 0, 0, tzinfo=timezone.utc)
     now = datetime.now(timezone.utc)
     diff = target - now
     
