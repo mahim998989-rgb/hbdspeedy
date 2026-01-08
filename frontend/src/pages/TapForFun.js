@@ -81,10 +81,13 @@ const TapForFun = () => {
                     className="w-full rounded-lg"
                     data-testid="tap-image"
                   />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
-                    <div className="bg-white/90 rounded-full p-6">
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg backdrop-blur-sm">
+                    <div className="bg-white/95 rounded-full p-6 shadow-xl">
                       <Play size={48} className="text-purple-600" />
                     </div>
+                  </div>
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 text-purple-600 px-4 py-2 rounded-full text-sm font-bold">
+                    👆 Tap to Play
                   </div>
                 </div>
               )}
