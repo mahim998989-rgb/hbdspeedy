@@ -26,11 +26,12 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
       }
     } else {
-      // Check for existing token
+      // For testing outside Telegram - create a demo user
       if (token) {
         fetchUserProfile();
       } else {
-        setLoading(false);
+        // Auto-login with demo user for testing
+        authenticateDemoUser();
       }
     }
   }, []);
