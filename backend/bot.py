@@ -225,6 +225,17 @@ def main():
     
     application = Application.builder().token(BOT_TOKEN).build()
     
+    # Get bot info
+    import asyncio
+    async def get_bot_info():
+        bot = application.bot
+        bot_data = await bot.get_me()
+        logger.info(f"Bot started: @{bot_data.username}")
+        logger.info(f"Bot name: {bot_data.first_name}")
+        logger.info(f"Bot ID: {bot_data.id}")
+    
+    asyncio.get_event_loop().run_until_complete(get_bot_info())
+    
     # Add handlers
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("admin", admin_command))
