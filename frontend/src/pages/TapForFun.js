@@ -9,6 +9,7 @@ const TapForFun = () => {
   const navigate = useNavigate();
   const [settings, setSettings] = useState({});
   const [videoPlaying, setVideoPlaying] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   const videoRef = React.useRef(null);
 
   useEffect(() => {
@@ -25,7 +26,7 @@ const TapForFun = () => {
   };
 
   const handleTap = () => {
-    if (videoRef.current) {
+    if (videoRef.current && videoLoaded) {
       // Restart video from beginning on every tap
       videoRef.current.currentTime = 0;
       
