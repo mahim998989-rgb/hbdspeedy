@@ -1,53 +1,48 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
-
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+import { useEffect, useState } from 'react';
+import '@/App.css';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Home from './pages/Home';
+import Checkin from './pages/Checkin';
+import Tasks from './pages/Tasks';
+import Referral from './pages/Referral';
+import TapForFun from './pages/TapForFun';
+import Withdrawal from './pages/Withdrawal';
+import Leaderboard from './pages/Leaderboard';
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminTasks from './pages/admin/AdminTasks';
+import AdminWithdrawals from './pages/admin/AdminWithdrawals';
+import AdminSettings from './pages/admin/AdminSettings';
+import { AuthProvider } from './context/AuthContext';
+import { Toaster } from './components/ui/sonner';
 
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </div>
+    <AuthProvider>
+      <div className="App">
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/checkin" element={<Checkin />} />
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/referral" element={<Referral />} />
+            <Route path="/tap" element={<TapForFun />} />
+            <Route path="/withdrawal" element={<Withdrawal />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/tasks" element={<AdminTasks />} />
+            <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
+          </Routes>
+        </BrowserRouter>
+        <Toaster position="top-center" richColors />
+      </div>
+    </AuthProvider>
   );
 }
 
