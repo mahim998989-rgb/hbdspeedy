@@ -28,8 +28,19 @@ const TapForFun = () => {
     if (videoRef.current) {
       // Restart video from beginning on every tap
       videoRef.current.currentTime = 0;
-      videoRef.current.play();
-      setVideoPlaying(true);
+      
+      // Play with error handling
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setVideoPlaying(true);
+          })
+          .catch(error => {
+            console.error('Video play failed:', error);
+            setVideoPlaying(false);
+          });
+      }
     }
   };
 
