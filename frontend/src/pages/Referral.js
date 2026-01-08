@@ -27,7 +27,7 @@ const Referral = () => {
   };
 
   const getReferralLink = () => {
-    return `https://t.me/YOUR_BOT_USERNAME?start=${user?.telegram_id}`;
+    return `https://t.me/hbdspeedy_io_bot?start=${user?.telegram_id}`;
   };
 
   const copyReferralLink = () => {
