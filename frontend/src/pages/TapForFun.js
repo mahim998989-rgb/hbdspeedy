@@ -24,8 +24,9 @@ const TapForFun = () => {
     }
   };
 
-  const handleImageClick = () => {
+  const handleTap = () => {
     if (videoRef.current) {
+      // Restart video from beginning on every tap
       videoRef.current.currentTime = 0;
       videoRef.current.play();
       setVideoPlaying(true);
@@ -53,40 +54,47 @@ const TapForFun = () => {
           <p className="text-yellow-300 text-xs mt-2">(No points, just for fun!)</p>
         </Card>
 
-        {settings.tap_image_url && (
-          <Card className="bg-white/10 backdrop-blur-md border-white/20 p-4 mb-6">
-            <div
-              className="cursor-pointer transition-transform hover:scale-105 active:scale-95"
-              onClick={handleImageClick}
-              data-testid="tap-image"
-            >
-              <img
-                src={settings.tap_image_url}
-                alt="Tap to play"
-                className="w-full rounded-lg"
-              />
-              <div className="text-center mt-3">
-                <Button
-                  className="bg-white text-purple-600 hover:bg-gray-100 font-bold"
-                  data-testid="play-video-btn"
-                >
-                  <Play size={20} className="mr-2" /> Tap to Play
-                </Button>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {settings.tap_video_url && (
+        {settings.tap_image_url && settings.tap_video_url && (
           <Card className="bg-white/10 backdrop-blur-md border-white/20 p-4">
-            <video
-              ref={videoRef}
-              src={settings.tap_video_url}
-              className="w-full rounded-lg"
-              controls
-              onEnded={() => setVideoPlaying(false)}
-              data-testid="tap-video"
-            />
+            <div
+              className="relative cursor-pointer transition-transform hover:scale-105 active:scale-95"
+              onClick={handleTap}
+              data-testid="tap-area"
+            >
+              {/* Image - shown when video not playing */}
+              {!videoPlaying && (
+                <div className="relative">
+                  <img
+                    src={settings.tap_image_url}
+                    alt="Tap to play"
+                    className="w-full rounded-lg"
+                    data-testid="tap-image"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
+                    <div className="bg-white/90 rounded-full p-6">
+                      <Play size={48} className="text-purple-600" />
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Video - shown when playing */}
+              <video
+                ref={videoRef}
+                src={settings.tap_video_url}
+                className={`w-full rounded-lg ${!videoPlaying ? 'hidden' : ''}`}
+                onEnded={() => setVideoPlaying(false)}
+                playsInline
+                data-testid="tap-video"
+              />
+              
+              {/* Tap instruction overlay */}
+              {videoPlaying && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm animate-pulse">
+                  Tap to restart!
+                </div>
+              )}
+            </div>
           </Card>
         )}
       </div>
