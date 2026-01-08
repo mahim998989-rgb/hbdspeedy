@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
-import { ArrowLeft, DollarSign, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, DollarSign, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 const Withdrawal = () => {
   const navigate = useNavigate();
@@ -14,6 +14,7 @@ const Withdrawal = () => {
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [requests, setRequests] = useState([]);
+  const [withdrawalEnabled, setWithdrawalEnabled] = useState(false);
 
   useEffect(() => {
     fetchRequests();
@@ -30,6 +31,11 @@ const Withdrawal = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!withdrawalEnabled) {
+      toast.error('Withdrawal system will start soon!');
+      return;
+    }
     
     const amountNum = parseInt(amount);
     if (isNaN(amountNum) || amountNum <= 0) {
@@ -78,6 +84,18 @@ const Withdrawal = () => {
             <div className="text-4xl font-black text-white">{user?.points || 0}</div>
           </div>
 
+          {!withdrawalEnabled && (
+            <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 mb-4 flex items-start gap-3">
+              <AlertCircle size={24} className="text-yellow-300 flex-shrink-0 mt-1" />
+              <div>
+                <h3 className="text-yellow-300 font-bold mb-1">Coming Soon!</h3>
+                <p className="text-yellow-200 text-sm">
+                  Withdrawal system will start soon. Keep collecting points!
+                </p>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-white text-sm font-medium mb-2 block">Amount to Withdraw</label>
@@ -88,16 +106,17 @@ const Withdrawal = () => {
                 placeholder="Enter amount"
                 className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
                 data-testid="withdrawal-amount-input"
+                disabled={!withdrawalEnabled}
               />
             </div>
 
             <Button
               type="submit"
-              disabled={loading}
-              className="w-full bg-white text-orange-600 hover:bg-gray-100 font-bold py-6 text-lg"
+              disabled={loading || !withdrawalEnabled}
+              className="w-full bg-white text-orange-600 hover:bg-gray-100 font-bold py-6 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="withdrawal-submit-btn"
             >
-              {loading ? 'Submitting...' : 'Submit Request'}
+              {!withdrawalEnabled ? '🔒 Coming Soon' : loading ? 'Submitting...' : 'Submit Request'}
             </Button>
           </form>
         </Card>
