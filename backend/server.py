@@ -220,19 +220,28 @@ async def daily_checkin(current_user = Depends(get_current_user)):
         last_checkin_dt = datetime.fromisoformat(last_checkin) if isinstance(last_checkin, str) else last_checkin
         hours_diff = (now - last_checkin_dt).total_seconds() / 3600
         
+        # Must wait 24 hours between check-ins
         if hours_diff < 24:
-            raise HTTPException(status_code=400, detail="Already checked in today")
+            remaining_hours = 24 - hours_diff
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Already checked in today. Come back in {int(remaining_hours)}h {int((remaining_hours % 1) * 60)}m"
+            )
         
-        if hours_diff > 48:
-            # Reset streak
-            streak_day = 1
-        else:
+        # Check if consecutive (within 48 hours)
+        if hours_diff <= 48:
             streak_day = user.get('streak_day', 0) + 1
+        else:
+            # Reset streak if more than 48 hours
+            streak_day = 1
     else:
         streak_day = 1
     
-    # Calculate points (doubles each day)
+    # Calculate points (doubles each day of streak)
     points = 100 * (2 ** (streak_day - 1))
+    
+    # Cap points at a reasonable maximum (e.g., 12800 for day 8)
+    points = min(points, 12800)
     
     await db.users.update_one(
         {"telegram_id": current_user['telegram_id']},
