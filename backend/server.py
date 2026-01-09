@@ -171,7 +171,8 @@ async def telegram_auth(auth_req: TelegramAuthRequest):
             "join_bonus_claimed": False
         }
         await db.users.insert_one(user_doc)
-        user = user_doc
+        # Return user without _id
+        user = {k: v for k, v in user_doc.items() if k != '_id'}
     
     token = create_jwt_token({"telegram_id": auth_req.telegram_id, "username": auth_req.username})
     return {"token": token, "user": user}
