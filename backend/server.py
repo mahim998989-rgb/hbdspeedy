@@ -471,14 +471,27 @@ async def get_admin_stats(admin = Depends(get_admin_user)):
 async def get_all_users(admin = Depends(get_admin_user)):
     users = await db.users.find({}, {"_id": 0}).sort("join_date", -1).limit(1000).to_list(1000)
     
-    # Enrich with task completion count for each user
+    # Batch fetch task completion counts using aggregation
+    user_ids = [u['telegram_id'] for u in users]
+    
+    # Aggregate task completions by user
+    task_counts = await db.task_completions.aggregate([
+        {"$match": {"user_id": {"$in": user_ids}}},
+        {"$group": {"_id": "$user_id", "count": {"$sum": 1}}}
+    ]).to_list(1000)
+    task_count_map = {tc['_id']: tc['count'] for tc in task_counts}
+    
+    # Aggregate withdrawal counts by user
+    withdrawal_counts = await db.withdrawals.aggregate([
+        {"$match": {"user_id": {"$in": user_ids}}},
+        {"$group": {"_id": "$user_id", "count": {"$sum": 1}}}
+    ]).to_list(1000)
+    withdrawal_count_map = {wc['_id']: wc['count'] for wc in withdrawal_counts}
+    
+    # Enrich users with counts
     for user in users:
-        task_count = await db.task_completions.count_documents({"user_id": user['telegram_id']})
-        user['tasks_completed'] = task_count
-        
-        # Check recent activity
-        withdrawal_count = await db.withdrawals.count_documents({"user_id": user['telegram_id']})
-        user['withdrawal_count'] = withdrawal_count
+        user['tasks_completed'] = task_count_map.get(user['telegram_id'], 0)
+        user['withdrawal_count'] = withdrawal_count_map.get(user['telegram_id'], 0)
     
     return users
 
