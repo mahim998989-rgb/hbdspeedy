@@ -398,7 +398,7 @@ async def get_my_withdrawals(current_user = Depends(get_current_user)):
     withdrawals = await db.withdrawals.find(
         {"user_id": current_user['telegram_id']},
         {"_id": 0}
-    ).sort("timestamp", -1).to_list(None)
+    ).sort("timestamp", -1).limit(100).to_list(100)
     
     return withdrawals
 
