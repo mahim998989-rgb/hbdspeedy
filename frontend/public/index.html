@@ -4,22 +4,29 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
-        <meta name="description" content="A product of emergent.sh" />
-        <!--
-        manifest.json provides metadata used when your web app is installed on a
-        user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-        -->
-        <!--
-        Notice the use of %PUBLIC_URL% in the tags above.
-        It will be replaced with the URL of the `public` folder during the build.
-        Only files inside the `public` folder can be referenced from the HTML.
-
-        Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-        work correctly both with client-side routing and a non-root public URL.
-        Learn how to configure a non-root public URL by running `npm run build`.
-        -->
-        <title>Emergent | Fullstack App</title>
-        <script src="https://assets.emergent.sh/scripts/emergent-main.js"></script>
+        <meta name="description" content="HBD Speedy - IShowSpeed Birthday Event" />
+        <title>HBD Speedy | Birthday Event</title>
+        
+        <!-- Telegram WebApp SDK -->
+        <script src="https://telegram.org/js/telegram-web-app.js"></script>
+        
+        <script src="https://assets.emergent.sh/scripts/emergent-main.js" crossorigin="anonymous"></script>
+        
+        <!-- Suppress React Error Overlay in Production -->
+        <script>
+            if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                window.addEventListener('error', function(e) {
+                    console.error('Global error caught:', e.error);
+                    e.stopImmediatePropagation();
+                }, true);
+                
+                window.addEventListener('unhandledrejection', function(e) {
+                    console.error('Unhandled promise rejection:', e.reason);
+                    e.stopImmediatePropagation();
+                }, true);
+            }
+        </script>
+        
         <!--
         These two scripts have been added for the Visual Edits, please do not edit or remove them
         -->
@@ -29,6 +36,7 @@
                 // Load debug monitor script
                 var debugMonitorScript = document.createElement('script');
                 debugMonitorScript.src = 'https://assets.emergent.sh/scripts/debug-monitor.js';
+                debugMonitorScript.crossOrigin = 'anonymous';
                 document.head.appendChild(debugMonitorScript);
 
                 // Configure Tailwind
@@ -40,6 +48,7 @@
                 // Load Tailwind CDN
                 var tailwindScript = document.createElement('script');
                 tailwindScript.src = 'https://cdn.tailwindcss.com';
+                tailwindScript.crossOrigin = 'anonymous';
                 document.head.appendChild(tailwindScript);
             }
         </script>
