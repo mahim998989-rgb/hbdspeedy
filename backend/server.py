@@ -508,10 +508,15 @@ async def get_user_details(telegram_id: int, admin = Depends(get_admin_user)):
         {"_id": 0}
     ).sort("completed_at", -1).limit(100).to_list(100)
     
-    # Get task details for each completion
+    # Batch fetch all tasks for completions
+    task_ids = [c['task_id'] for c in task_completions]
+    tasks_list = await db.tasks.find({"task_id": {"$in": task_ids}}, {"_id": 0}).to_list(100) if task_ids else []
+    tasks_map = {t['task_id']: t for t in tasks_list}
+    
+    # Build completed tasks list
     completed_tasks = []
     for completion in task_completions:
-        task = await db.tasks.find_one({"task_id": completion['task_id']}, {"_id": 0})
+        task = tasks_map.get(completion['task_id'])
         if task:
             completed_tasks.append({
                 "task_id": task['task_id'],
