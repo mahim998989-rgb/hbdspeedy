@@ -428,9 +428,9 @@ async def get_settings():
 # Admin Routes
 @api_router.post("/admin/login")
 async def admin_login(req: AdminLoginRequest):
-    # Check admin credentials
-    admin_username = os.environ.get('ADMIN_TELEGRAM_USERNAME', 'Noone55550').replace('@', '')
-    admin_password = os.environ.get('ADMIN_PASSWORD', 'mahim200m')
+    # Check admin credentials (no fallbacks for security)
+    admin_username = os.environ['ADMIN_TELEGRAM_USERNAME'].replace('@', '')
+    admin_password = os.environ['ADMIN_PASSWORD']
     
     if req.username != admin_username or req.password != admin_password:
         raise HTTPException(status_code=401, detail="Invalid credentials")
