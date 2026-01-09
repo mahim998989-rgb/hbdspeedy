@@ -469,8 +469,160 @@ async def get_admin_stats(admin = Depends(get_admin_user)):
 
 @api_router.get("/admin/users")
 async def get_all_users(admin = Depends(get_admin_user)):
-    users = await db.users.find({}, {"_id": 0}).sort("points", -1).limit(1000).to_list(1000)
+    users = await db.users.find({}, {"_id": 0}).sort("join_date", -1).limit(1000).to_list(1000)
+    
+    # Enrich with task completion count for each user
+    for user in users:
+        task_count = await db.task_completions.count_documents({"user_id": user['telegram_id']})
+        user['tasks_completed'] = task_count
+        
+        # Check recent activity
+        withdrawal_count = await db.withdrawals.count_documents({"user_id": user['telegram_id']})
+        user['withdrawal_count'] = withdrawal_count
+    
     return users
+
+@api_router.get("/admin/users/{telegram_id}")
+async def get_user_details(telegram_id: int, admin = Depends(get_admin_user)):
+    """Get detailed information about a specific user"""
+    user = await db.users.find_one({"telegram_id": telegram_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get all task completions for this user
+    task_completions = await db.task_completions.find(
+        {"user_id": telegram_id},
+        {"_id": 0}
+    ).sort("completed_at", -1).limit(100).to_list(100)
+    
+    # Get task details for each completion
+    completed_tasks = []
+    for completion in task_completions:
+        task = await db.tasks.find_one({"task_id": completion['task_id']}, {"_id": 0})
+        if task:
+            completed_tasks.append({
+                "task_id": task['task_id'],
+                "title": task['title'],
+                "reward_points": task['reward_points'],
+                "completed_at": completion['completed_at']
+            })
+    
+    # Get all withdrawals for this user
+    withdrawals = await db.withdrawals.find(
+        {"user_id": telegram_id},
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(50).to_list(50)
+    
+    # Get referral milestones claimed
+    milestones = await db.referral_milestones.find(
+        {"user_id": telegram_id},
+        {"_id": 0}
+    ).limit(10).to_list(10)
+    
+    # Get users referred by this user
+    referred_users = await db.users.find(
+        {"referred_by": telegram_id},
+        {"_id": 0, "telegram_id": 1, "username": 1, "join_date": 1, "points": 1}
+    ).limit(100).to_list(100)
+    
+    return {
+        "user": user,
+        "completed_tasks": completed_tasks,
+        "withdrawals": withdrawals,
+        "referral_milestones": milestones,
+        "referred_users": referred_users,
+        "total_tasks_completed": len(completed_tasks),
+        "total_withdrawals": len(withdrawals)
+    }
+
+@api_router.get("/admin/recent-activities")
+async def get_recent_activities(admin = Depends(get_admin_user), limit: int = 50):
+    """Get recent activities across the platform"""
+    activities = []
+    
+    # Get recent user registrations
+    recent_users = await db.users.find(
+        {},
+        {"_id": 0, "telegram_id": 1, "username": 1, "join_date": 1}
+    ).sort("join_date", -1).limit(20).to_list(20)
+    
+    for user in recent_users:
+        activities.append({
+            "type": "user_joined",
+            "telegram_id": user['telegram_id'],
+            "username": user['username'],
+            "timestamp": user['join_date'],
+            "description": f"@{user['username']} joined the event"
+        })
+    
+    # Get recent task completions
+    recent_completions = await db.task_completions.find(
+        {},
+        {"_id": 0}
+    ).sort("completed_at", -1).limit(20).to_list(20)
+    
+    for completion in recent_completions:
+        user = await db.users.find_one({"telegram_id": completion['user_id']}, {"_id": 0, "username": 1})
+        task = await db.tasks.find_one({"task_id": completion['task_id']}, {"_id": 0, "title": 1, "reward_points": 1})
+        if user and task:
+            activities.append({
+                "type": "task_completed",
+                "telegram_id": completion['user_id'],
+                "username": user.get('username', 'Unknown'),
+                "timestamp": completion['completed_at'],
+                "description": f"@{user.get('username', 'Unknown')} completed '{task['title']}' (+{task['reward_points']} pts)"
+            })
+    
+    # Get recent withdrawals
+    recent_withdrawals = await db.withdrawals.find(
+        {},
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(20).to_list(20)
+    
+    for withdrawal in recent_withdrawals:
+        activities.append({
+            "type": "withdrawal",
+            "telegram_id": withdrawal['user_id'],
+            "username": withdrawal.get('username', 'Unknown'),
+            "timestamp": withdrawal['timestamp'],
+            "description": f"@{withdrawal.get('username', 'Unknown')} requested {withdrawal['amount']} pts withdrawal ({withdrawal['status']})"
+        })
+    
+    # Get recent check-ins (users with last_checkin)
+    recent_checkins = await db.users.find(
+        {"last_checkin": {"$ne": None}},
+        {"_id": 0, "telegram_id": 1, "username": 1, "last_checkin": 1, "streak_day": 1}
+    ).sort("last_checkin", -1).limit(20).to_list(20)
+    
+    for checkin in recent_checkins:
+        activities.append({
+            "type": "checkin",
+            "telegram_id": checkin['telegram_id'],
+            "username": checkin['username'],
+            "timestamp": checkin['last_checkin'],
+            "description": f"@{checkin['username']} checked in (Day {checkin['streak_day']} streak)"
+        })
+    
+    # Sort all activities by timestamp
+    activities.sort(key=lambda x: x['timestamp'] if x['timestamp'] else '', reverse=True)
+    
+    return activities[:limit]
+
+@api_router.get("/admin/task-stats")
+async def get_task_stats(admin = Depends(get_admin_user)):
+    """Get statistics for each task"""
+    tasks = await db.tasks.find({}, {"_id": 0}).limit(100).to_list(100)
+    
+    task_stats = []
+    for task in tasks:
+        completion_count = await db.task_completions.count_documents({"task_id": task['task_id']})
+        task_stats.append({
+            **task,
+            "completion_count": completion_count,
+            "total_points_awarded": completion_count * task['reward_points']
+        })
+    
+    return task_stats
 
 @api_router.post("/admin/adjust-points")
 async def adjust_points(req: AdminPointsAdjustRequest, admin = Depends(get_admin_user)):
