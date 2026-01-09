@@ -116,20 +116,9 @@ async def get_admin_user(credentials: HTTPAuthorizationCredentials = Depends(sec
     return payload
 
 def calculate_join_bonus():
-    """Calculate join bonus based on current date"""
-    event_start = datetime(2026, 1, 9, tzinfo=timezone.utc)
-    now = datetime.now(timezone.utc)
-    
-    # Calculate days since event start (0 for Jan 9, 1 for Jan 10, etc.)
-    days_since_start = (now.date() - event_start.date()).days
-    
-    # If before event start, give maximum bonus
-    if days_since_start < 0:
-        return 1200
-    
-    # Jan 9 = 1200, Jan 10 = 1100, Jan 11 = 1000, etc.
-    bonus = 1200 - (days_since_start * 100)
-    return max(100, bonus)
+    """Calculate join bonus - same amount for everyone"""
+    # Everyone gets 1200 points when they join, regardless of date
+    return 1200
 
 def get_countdown_data():
     """Get countdown data"""
