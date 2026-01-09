@@ -455,7 +455,7 @@ async def get_admin_stats(admin = Depends(get_admin_user)):
 
 @api_router.get("/admin/users")
 async def get_all_users(admin = Depends(get_admin_user)):
-    users = await db.users.find({}, {"_id": 0}).sort("points", -1).to_list(None)
+    users = await db.users.find({}, {"_id": 0}).sort("points", -1).limit(1000).to_list(1000)
     return users
 
 @api_router.post("/admin/adjust-points")
