@@ -27,7 +27,9 @@ const Referral = () => {
   };
 
   const getReferralLink = () => {
-    return `https://t.me/hbdspeedy_io_bot?start=${user?.telegram_id}`;
+    // Bot username from environment or use default
+    const botUsername = process.env.REACT_APP_TELEGRAM_BOT_USERNAME || 'hbdspeedy_io_bot';
+    return `https://t.me/${botUsername}?start=${user?.telegram_id}`;
   };
 
   const copyReferralLink = () => {
