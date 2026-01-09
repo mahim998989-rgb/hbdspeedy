@@ -468,7 +468,7 @@ async def adjust_points(req: AdminPointsAdjustRequest, admin = Depends(get_admin
 
 @api_router.get("/admin/withdrawals")
 async def get_all_withdrawals(admin = Depends(get_admin_user)):
-    withdrawals = await db.withdrawals.find({}, {"_id": 0}).sort("timestamp", -1).to_list(None)
+    withdrawals = await db.withdrawals.find({}, {"_id": 0}).sort("timestamp", -1).limit(500).to_list(500)
     return withdrawals
 
 @api_router.post("/admin/withdrawal/{withdrawal_id}/approve")
