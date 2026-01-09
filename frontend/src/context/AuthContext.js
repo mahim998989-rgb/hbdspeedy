@@ -15,17 +15,25 @@ export const AuthProvider = ({ children }) => {
         // Check if running in Telegram Web App
         if (window.Telegram?.WebApp) {
           const tg = window.Telegram.WebApp;
-          tg.ready();
-          tg.expand();
+          
+          try {
+            tg.ready();
+            tg.expand();
+          } catch (e) {
+            console.warn('Telegram WebApp initialization warning:', e);
+          }
 
           const user = tg.initDataUnsafe?.user;
-          if (user) {
+          if (user && user.id) {
             await authenticateTelegramUser(user);
           } else {
-            setLoading(false);
+            // If no user data, create demo user for testing
+            console.log('No Telegram user data, using demo user');
+            await authenticateDemoUser();
           }
         } else {
           // For testing outside Telegram - create a demo user
+          console.log('Not in Telegram WebApp, using demo user');
           if (token) {
             await fetchUserProfile();
           } else {
@@ -35,7 +43,13 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (error) {
         console.error('Auth initialization failed:', error);
-        setLoading(false);
+        // Fallback to demo user on any error
+        try {
+          await authenticateDemoUser();
+        } catch (fallbackError) {
+          console.error('Demo user creation also failed:', fallbackError);
+          setLoading(false);
+        }
       }
     };
 
