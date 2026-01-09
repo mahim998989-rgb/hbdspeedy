@@ -579,17 +579,28 @@ async def get_recent_activities(admin = Depends(get_admin_user), limit: int = 50
         {"_id": 0}
     ).sort("completed_at", -1).limit(20).to_list(20)
     
-    for completion in recent_completions:
-        user = await db.users.find_one({"telegram_id": completion['user_id']}, {"_id": 0, "username": 1})
-        task = await db.tasks.find_one({"task_id": completion['task_id']}, {"_id": 0, "title": 1, "reward_points": 1})
-        if user and task:
-            activities.append({
-                "type": "task_completed",
-                "telegram_id": completion['user_id'],
-                "username": user.get('username', 'Unknown'),
-                "timestamp": completion['completed_at'],
-                "description": f"@{user.get('username', 'Unknown')} completed '{task['title']}' (+{task['reward_points']} pts)"
-            })
+    # Batch fetch users and tasks for completions
+    if recent_completions:
+        user_ids = list(set(c['user_id'] for c in recent_completions))
+        task_ids = list(set(c['task_id'] for c in recent_completions))
+        
+        users_list = await db.users.find({"telegram_id": {"$in": user_ids}}, {"_id": 0, "telegram_id": 1, "username": 1}).to_list(100)
+        users_map = {u['telegram_id']: u for u in users_list}
+        
+        tasks_list = await db.tasks.find({"task_id": {"$in": task_ids}}, {"_id": 0, "task_id": 1, "title": 1, "reward_points": 1}).to_list(100)
+        tasks_map = {t['task_id']: t for t in tasks_list}
+        
+        for completion in recent_completions:
+            user = users_map.get(completion['user_id'])
+            task = tasks_map.get(completion['task_id'])
+            if user and task:
+                activities.append({
+                    "type": "task_completed",
+                    "telegram_id": completion['user_id'],
+                    "username": user.get('username', 'Unknown'),
+                    "timestamp": completion['completed_at'],
+                    "description": f"@{user.get('username', 'Unknown')} completed '{task['title']}' (+{task['reward_points']} pts)"
+                })
     
     # Get recent withdrawals
     recent_withdrawals = await db.withdrawals.find(
