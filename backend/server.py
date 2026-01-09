@@ -264,7 +264,7 @@ async def get_referral_stats(current_user = Depends(get_current_user)):
     referral_count = user.get('referral_count', 0)
     
     # Check claimed milestones
-    milestones = await db.referral_milestones.find({"user_id": current_user['telegram_id']}, {"_id": 0}).to_list(None)
+    milestones = await db.referral_milestones.find({"user_id": current_user['telegram_id']}, {"_id": 0}).limit(10).to_list(10)
     claimed = {m['milestone'] for m in milestones}
     
     # Calculate available rewards
