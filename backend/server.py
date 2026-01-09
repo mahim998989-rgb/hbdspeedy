@@ -323,13 +323,13 @@ async def claim_referral_reward(milestone: int, current_user = Depends(get_curre
 
 @api_router.get("/tasks/list")
 async def list_tasks(current_user = Depends(get_current_user)):
-    tasks = await db.tasks.find({"active": True}, {"_id": 0}).to_list(None)
+    tasks = await db.tasks.find({"active": True}, {"_id": 0}).limit(100).to_list(100)
     
     # Get user's completed tasks
     completed = await db.task_completions.find(
         {"user_id": current_user['telegram_id']},
         {"_id": 0, "task_id": 1}
-    ).to_list(None)
+    ).limit(1000).to_list(1000)
     completed_ids = {c['task_id'] for c in completed}
     
     for task in tasks:
