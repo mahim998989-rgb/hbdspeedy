@@ -445,12 +445,26 @@ async def get_admin_stats(admin = Depends(get_admin_user)):
     total_points = total_points_result[0]['total'] if total_points_result else 0
     pending_withdrawals = await db.withdrawals.count_documents({"status": "pending"})
     total_tasks = await db.tasks.count_documents({"active": True})
+    total_task_completions = await db.task_completions.count_documents({})
+    total_checkins = await db.users.count_documents({"last_checkin": {"$ne": None}})
+    total_referrals_result = await db.users.aggregate([{"$group": {"_id": None, "total": {"$sum": "$referral_count"}}}]).to_list(1)
+    total_referrals = total_referrals_result[0]['total'] if total_referrals_result else 0
+    join_bonus_claimed = await db.users.count_documents({"join_bonus_claimed": True})
+    
+    # Get users joined today
+    today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    users_today = await db.users.count_documents({"join_date": {"$gte": today.isoformat()}})
     
     return {
         "total_users": total_users,
         "total_points": total_points,
         "pending_withdrawals": pending_withdrawals,
-        "total_tasks": total_tasks
+        "total_tasks": total_tasks,
+        "total_task_completions": total_task_completions,
+        "total_checkins": total_checkins,
+        "total_referrals": total_referrals,
+        "join_bonus_claimed": join_bonus_claimed,
+        "users_today": users_today
     }
 
 @api_router.get("/admin/users")
