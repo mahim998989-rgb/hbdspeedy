@@ -10,27 +10,36 @@ export const AuthProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Check if running in Telegram Web App
-    if (window.Telegram?.WebApp) {
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-      tg.expand();
+    const initAuth = async () => {
+      try {
+        // Check if running in Telegram Web App
+        if (window.Telegram?.WebApp) {
+          const tg = window.Telegram.WebApp;
+          tg.ready();
+          tg.expand();
 
-      const user = tg.initDataUnsafe?.user;
-      if (user) {
-        authenticateTelegramUser(user);
-      } else {
+          const user = tg.initDataUnsafe?.user;
+          if (user) {
+            await authenticateTelegramUser(user);
+          } else {
+            setLoading(false);
+          }
+        } else {
+          // For testing outside Telegram - create a demo user
+          if (token) {
+            await fetchUserProfile();
+          } else {
+            // Auto-login with demo user for testing
+            await authenticateDemoUser();
+          }
+        }
+      } catch (error) {
+        console.error('Auth initialization failed:', error);
         setLoading(false);
       }
-    } else {
-      // For testing outside Telegram - create a demo user
-      if (token) {
-        fetchUserProfile();
-      } else {
-        // Auto-login with demo user for testing
-        authenticateDemoUser();
-      }
-    }
+    };
+
+    initAuth();
   }, []);
 
   const authenticateTelegramUser = async (telegramUser) => {
