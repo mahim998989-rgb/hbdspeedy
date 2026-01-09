@@ -642,9 +642,17 @@ async def get_task_stats(admin = Depends(get_admin_user)):
     """Get statistics for each task"""
     tasks = await db.tasks.find({}, {"_id": 0}).limit(100).to_list(100)
     
+    # Batch fetch completion counts using aggregation
+    task_ids = [t['task_id'] for t in tasks]
+    completion_counts = await db.task_completions.aggregate([
+        {"$match": {"task_id": {"$in": task_ids}}},
+        {"$group": {"_id": "$task_id", "count": {"$sum": 1}}}
+    ]).to_list(100) if task_ids else []
+    completion_map = {cc['_id']: cc['count'] for cc in completion_counts}
+    
     task_stats = []
     for task in tasks:
-        completion_count = await db.task_completions.count_documents({"task_id": task['task_id']})
+        completion_count = completion_map.get(task['task_id'], 0)
         task_stats.append({
             **task,
             "completion_count": completion_count,
