@@ -22,7 +22,7 @@
 
 ### For Admins
 
-1. **Access Admin Panel**: https://fanmade-speedy-bot.preview.emergentagent.com/admin/login
+1. **Access Admin Panel**: https://deploy-app-21.preview.emergentagent.com/admin/login
 
 2. **Login**:
    - Username: `Noone55550`
@@ -93,13 +93,13 @@
 - Running 24/7 via supervisor
 
 ### Web App
-- **URL**: https://fanmade-speedy-bot.preview.emergentagent.com
+- **URL**: https://deploy-app-21.preview.emergentagent.com
 - Mobile-optimized
 - Real-time countdown
 - Instant updates
 
 ### Admin Panel
-- **URL**: https://fanmade-speedy-bot.preview.emergentagent.com/admin/login
+- **URL**: https://deploy-app-21.preview.emergentagent.com/admin/login
 - Desktop-optimized
 - Full CRUD operations
 - Statistics dashboard
@@ -138,5 +138,5 @@
 ## Quick Links
 
 - Bot: https://t.me/hbdspeedy_io_bot
-- Web App: https://fanmade-speedy-bot.preview.emergentagent.com
-- Admin Panel: https://fanmade-speedy-bot.preview.emergentagent.com/admin/login
+- Web App: https://deploy-app-21.preview.emergentagent.com
+- Admin Panel: https://deploy-app-21.preview.emergentagent.com/admin/login

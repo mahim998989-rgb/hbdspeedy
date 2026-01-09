@@ -91,11 +91,11 @@ Collections:
 ## Access
 
 ### User Access
-- **Web App**: https://fanmade-speedy-bot.preview.emergentagent.com
+- **Web App**: https://deploy-app-21.preview.emergentagent.com
 - **Telegram Bot**: Search for your bot on Telegram (use /start)
 
 ### Admin Access
-- **Admin Panel**: https://fanmade-speedy-bot.preview.emergentagent.com/admin/login
+- **Admin Panel**: https://deploy-app-21.preview.emergentagent.com/admin/login
 - **Username**: Noone55550
 - **Password**: mahim200m
 
