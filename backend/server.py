@@ -500,7 +500,7 @@ async def reject_withdrawal(withdrawal_id: str, reason: str = "Rejected", admin 
 
 @api_router.get("/admin/tasks")
 async def get_admin_tasks(admin = Depends(get_admin_user)):
-    tasks = await db.tasks.find({}, {"_id": 0}).to_list(None)
+    tasks = await db.tasks.find({}, {"_id": 0}).limit(100).to_list(100)
     return tasks
 
 @api_router.post("/admin/tasks")
