@@ -104,13 +104,6 @@ const Home = () => {
           )}
         </Card>
 
-        {/* Disclaimer */}
-        <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-3 mb-6 text-center">
-          <p className="text-yellow-200 text-sm font-medium">
-            ⚠️ This is a fan-made event. Points are not real money.
-          </p>
-        </div>
-
         {/* Menu Grid */}
         <div className="grid grid-cols-2 gap-4">
           <MenuButton
