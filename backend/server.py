@@ -30,6 +30,12 @@ app = FastAPI()
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer()
 
+# Health check endpoint for Kubernetes (must be at root, not under /api)
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Kubernetes liveness/readiness probes"""
+    return {"status": "healthy", "service": "hbd-speedy-api"}
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
