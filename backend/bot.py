@@ -196,7 +196,7 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     message = ' '.join(context.args)
-    users = await db.users.find({}, {"_id": 0, "telegram_id": 1}).to_list(None)
+    users = await db.users.find({}, {"_id": 0, "telegram_id": 1}).limit(10000).to_list(10000)
     
     success = 0
     failed = 0
