@@ -10,6 +10,7 @@ const Tasks = () => {
   const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [clickedLinks, setClickedLinks] = useState(new Set());
 
   useEffect(() => {
     fetchTasks();
@@ -24,12 +25,38 @@ const Tasks = () => {
     }
   };
 
+  const handleLinkClick = (taskId, url) => {
+    // Open the link
+    window.open(url, '_blank');
+    
+    // Mark this task link as clicked
+    setClickedLinks(prev => new Set([...prev, taskId]));
+    
+    // Show toast
+    toast.info('Link opened! Now you can claim your reward.', {
+      duration: 3000
+    });
+  };
+
   const completeTask = async (taskId) => {
+    // Check if link was clicked for tasks with URLs
+    const task = tasks.find(t => t.task_id === taskId);
+    if (task.url && !clickedLinks.has(taskId)) {
+      toast.error('⚠️ Please click "Visit Link" button first!');
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await apiClient.post('/tasks/complete', { task_id: taskId });
       toast.success(`✅ Task completed! +${response.data.reward} points`);
       fetchTasks();
+      // Remove from clicked links after claiming
+      setClickedLinks(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(taskId);
+        return newSet;
+      });
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to complete task');
     } finally {
@@ -55,6 +82,7 @@ const Tasks = () => {
             <h1 className="text-2xl font-black text-white">Tasks</h1>
           </div>
           <p className="text-white/80 text-sm">Complete tasks to earn points!</p>
+          <p className="text-yellow-300 text-xs mt-2">💡 You must click "Visit Link" before claiming rewards</p>
         </Card>
 
         <div className="space-y-4" data-testid="tasks-list">
@@ -90,21 +118,32 @@ const Tasks = () => {
                 ) : (
                   <div className="space-y-2 mt-3">
                     {task.url && (
-                      <Button
-                        onClick={() => window.open(task.url, '_blank')}
-                        className="w-full bg-white/20 text-white hover:bg-white/30"
-                        data-testid={`task-visit-${task.task_id}`}
-                      >
-                        <ExternalLink size={20} className="mr-2" /> Visit Link
-                      </Button>
+                      <>
+                        <Button
+                          onClick={() => handleLinkClick(task.task_id, task.url)}
+                          className={`w-full ${
+                            clickedLinks.has(task.task_id)
+                              ? 'bg-green-500/20 text-green-200 border border-green-500/50'
+                              : 'bg-white/20 text-white hover:bg-white/30'
+                          }`}
+                          data-testid={`task-visit-${task.task_id}`}
+                        >
+                          <ExternalLink size={20} className="mr-2" />
+                          {clickedLinks.has(task.task_id) ? '✅ Link Opened' : 'Visit Link'}
+                        </Button>
+                      </>
                     )}
                     <Button
                       onClick={() => completeTask(task.task_id)}
-                      disabled={loading}
-                      className="w-full bg-white text-pink-600 hover:bg-gray-100 font-bold"
+                      disabled={loading || (task.url && !clickedLinks.has(task.task_id))}
+                      className={`w-full font-bold ${
+                        task.url && !clickedLinks.has(task.task_id)
+                          ? 'bg-gray-500/50 text-gray-300 cursor-not-allowed'
+                          : 'bg-white text-pink-600 hover:bg-gray-100'
+                      }`}
                       data-testid={`task-claim-${task.task_id}`}
                     >
-                      Claim Reward
+                      {task.url && !clickedLinks.has(task.task_id) ? '🔒 Click Link First' : 'Claim Reward'}
                     </Button>
                   </div>
                 )}
