@@ -92,7 +92,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 pass
     
     countdown = get_countdown_text()
-    disclaimer = "⚠️ This is a fan-made event. Points are not real money."
     
     keyboard = [
         [InlineKeyboardButton("🎮 Open HBD Speedy App", web_app=WebAppInfo(url=WEB_APP_URL))],
@@ -105,7 +104,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_text += f"🎉 Welcome to HBD Speedy Event!\n\n"
     welcome_text += f"🎂 IShowSpeed Birthday Fan Event\n"
     welcome_text += f"📅 Event: January 9-20, 2025\n\n"
-    welcome_text += f"{disclaimer}\n\n"
     welcome_text += f"Tap the button below to start earning points!"
     
     await update.message.reply_text(welcome_text, reply_markup=reply_markup)
