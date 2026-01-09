@@ -15,34 +15,37 @@ import AdminTasks from './pages/admin/AdminTasks';
 import AdminWithdrawals from './pages/admin/AdminWithdrawals';
 import AdminSettings from './pages/admin/AdminSettings';
 import { AuthProvider } from './context/AuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from './components/ui/sonner';
 
 function App() {
   return (
-    <AuthProvider>
-      <div className="App">
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/checkin" element={<Checkin />} />
-            <Route path="/tasks" element={<Tasks />} />
-            <Route path="/referral" element={<Referral />} />
-            <Route path="/tap" element={<TapForFun />} />
-            <Route path="/withdrawal" element={<Withdrawal />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
-            
-            {/* Admin Routes */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/users" element={<AdminUsers />} />
-            <Route path="/admin/tasks" element={<AdminTasks />} />
-            <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
-          </Routes>
-        </BrowserRouter>
-        <Toaster position="top-center" richColors />
-      </div>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <div className="App">
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/checkin" element={<Checkin />} />
+              <Route path="/tasks" element={<Tasks />} />
+              <Route path="/referral" element={<Referral />} />
+              <Route path="/tap" element={<TapForFun />} />
+              <Route path="/withdrawal" element={<Withdrawal />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              
+              {/* Admin Routes */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/tasks" element={<AdminTasks />} />
+              <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+            </Routes>
+          </BrowserRouter>
+          <Toaster position="top-center" richColors />
+        </div>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
