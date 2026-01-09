@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// Use localhost for development, external URL for production
+// Use localhost for development, production URL from env (required)
 const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const BACKEND_URL = isDevelopment ? 'http://localhost:8001' : (process.env.REACT_APP_BACKEND_URL || '');
+const BACKEND_URL = isDevelopment ? 'http://localhost:8001' : process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
 
 export const apiClient = axios.create({
