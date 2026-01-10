@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, Header
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Header, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -35,6 +35,73 @@ security = HTTPBearer()
 async def health_check():
     """Health check endpoint for Kubernetes liveness/readiness probes"""
     return {"status": "healthy", "service": "hbd-speedy-api"}
+
+# Telegram Bot Webhook endpoint
+@app.post("/webhook/telegram")
+async def telegram_webhook(request: Request):
+    """Handle incoming Telegram updates via webhook"""
+    try:
+        from bot import process_update, get_application
+        
+        # Initialize the application if needed
+        app_bot = get_application()
+        if app_bot is None:
+            return {"ok": False, "error": "Bot not initialized"}
+        
+        # Initialize the application
+        if not app_bot._initialized:
+            await app_bot.initialize()
+        
+        update_data = await request.json()
+        await process_update(update_data)
+        return {"ok": True}
+    except Exception as e:
+        logger.error(f"Webhook error: {e}")
+        return {"ok": False, "error": str(e)}
+
+# Endpoint to set up the webhook
+@app.get("/webhook/setup")
+async def setup_webhook():
+    """Set up Telegram webhook"""
+    try:
+        from bot import get_application
+        import httpx
+        
+        bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
+        web_app_url = os.environ.get('WEB_APP_URL', 'https://deploy-app-21.emergent.host')
+        webhook_url = f"{web_app_url}/webhook/telegram"
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"https://api.telegram.org/bot{bot_token}/setWebhook",
+                json={"url": webhook_url}
+            )
+            result = response.json()
+            
+        return {"webhook_url": webhook_url, "result": result}
+    except Exception as e:
+        logger.error(f"Setup webhook error: {e}")
+        return {"ok": False, "error": str(e)}
+
+# Endpoint to remove the webhook (for testing with polling)
+@app.get("/webhook/delete")
+async def delete_webhook():
+    """Delete Telegram webhook"""
+    try:
+        import httpx
+        
+        bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"https://api.telegram.org/bot{bot_token}/deleteWebhook"
+            )
+            result = response.json()
+            
+        return {"result": result}
+    except Exception as e:
+        logger.error(f"Delete webhook error: {e}")
+        return {"ok": False, "error": str(e)}
 
 # Configure logging
 logging.basicConfig(
