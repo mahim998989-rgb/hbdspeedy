@@ -1,7 +1,7 @@
 import os
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime, timezone
 from dotenv import load_dotenv
@@ -11,9 +11,9 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB setup
-mongo_url = os.environ['MONGO_URL']
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[os.environ.get('DB_NAME', 'test_database')]
 
 # Logging
 logging.basicConfig(
@@ -24,8 +24,11 @@ logger = logging.getLogger(__name__)
 
 # Bot token
 BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
-WEB_APP_URL = os.environ.get('WEB_APP_URL', 'https://example.com')
+WEB_APP_URL = os.environ.get('WEB_APP_URL', 'https://deploy-app-21.emergent.host')
 ADMIN_TELEGRAM_USERNAME = os.environ.get('ADMIN_TELEGRAM_USERNAME', 'Noone55550')
+
+# Global application instance for webhook mode
+application = None
 
 def get_countdown_text():
     """Generate countdown text"""
@@ -103,7 +106,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_text = f"{countdown}\n\n"
     welcome_text += f"🎉 Welcome to HBD Speedy Event!\n\n"
     welcome_text += f"🎂 IShowSpeed Birthday Fan Event\n"
-    welcome_text += f"📅 Event: January 9-20, 2025\n\n"
+    welcome_text += f"📅 Event: January 9-20, 2026\n\n"
     welcome_text += f"Tap the button below to start earning points!"
     
     await update.message.reply_text(welcome_text, reply_markup=reply_markup)
@@ -215,24 +218,15 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update.message.reply_text(f"✅ Broadcast sent!\nSuccess: {success}\nFailed: {failed}")
 
-def main():
-    """Start the bot"""
+
+def create_application():
+    """Create and configure the bot application"""
+    global application
     if not BOT_TOKEN:
         logger.error("No TELEGRAM_BOT_TOKEN found in environment")
-        return
+        return None
     
     application = Application.builder().token(BOT_TOKEN).build()
-    
-    # Get bot info
-    import asyncio
-    async def get_bot_info():
-        bot = application.bot
-        bot_data = await bot.get_me()
-        logger.info(f"Bot started: @{bot_data.username}")
-        logger.info(f"Bot name: {bot_data.first_name}")
-        logger.info(f"Bot ID: {bot_data.id}")
-    
-    asyncio.get_event_loop().run_until_complete(get_bot_info())
     
     # Add handlers
     application.add_handler(CommandHandler("start", start_command))
@@ -241,9 +235,51 @@ def main():
     application.add_handler(CommandHandler("broadcast", broadcast_command))
     application.add_handler(CallbackQueryHandler(button_callback))
     
-    # Start bot
-    logger.info("Bot started...")
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    return application
+
+
+def get_application():
+    """Get or create the application instance"""
+    global application
+    if application is None:
+        application = create_application()
+    return application
+
+
+async def process_update(update_data: dict):
+    """Process an incoming update from webhook"""
+    app = get_application()
+    if app is None:
+        logger.error("Application not initialized")
+        return
+    
+    update = Update.de_json(update_data, app.bot)
+    await app.process_update(update)
+
+
+def main():
+    """Start the bot in polling mode (for local testing)"""
+    if not BOT_TOKEN:
+        logger.error("No TELEGRAM_BOT_TOKEN found in environment")
+        return
+    
+    app = create_application()
+    
+    # Get bot info
+    import asyncio
+    async def get_bot_info():
+        bot = app.bot
+        bot_data = await bot.get_me()
+        logger.info(f"Bot started: @{bot_data.username}")
+        logger.info(f"Bot name: {bot_data.first_name}")
+        logger.info(f"Bot ID: {bot_data.id}")
+    
+    asyncio.get_event_loop().run_until_complete(get_bot_info())
+    
+    # Start bot in polling mode
+    logger.info("Bot started in polling mode...")
+    app.run_polling(allowed_updates=Update.ALL_TYPES)
+
 
 if __name__ == '__main__':
     main()
