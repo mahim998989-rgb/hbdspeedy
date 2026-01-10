@@ -154,6 +154,72 @@ def get_countdown_data():
 async def root():
     return {"message": "HBD Speedy API", "version": "1.0.0"}
 
+# Telegram Bot Webhook endpoint (under /api for Kubernetes routing)
+@api_router.post("/webhook/telegram")
+async def telegram_webhook(request: Request):
+    """Handle incoming Telegram updates via webhook"""
+    try:
+        from bot import process_update, get_application
+        
+        # Initialize the application if needed
+        app_bot = get_application()
+        if app_bot is None:
+            return {"ok": False, "error": "Bot not initialized"}
+        
+        # Initialize the application
+        if not app_bot._initialized:
+            await app_bot.initialize()
+        
+        update_data = await request.json()
+        await process_update(update_data)
+        return {"ok": True}
+    except Exception as e:
+        logger.error(f"Webhook error: {e}")
+        return {"ok": False, "error": str(e)}
+
+# Endpoint to set up the webhook
+@api_router.get("/webhook/setup")
+async def setup_webhook():
+    """Set up Telegram webhook"""
+    try:
+        import httpx
+        
+        bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
+        web_app_url = os.environ.get('WEB_APP_URL', 'https://deploy-app-21.emergent.host')
+        webhook_url = f"{web_app_url}/api/webhook/telegram"
+        
+        async with httpx.AsyncClient() as http_client:
+            response = await http_client.post(
+                f"https://api.telegram.org/bot{bot_token}/setWebhook",
+                json={"url": webhook_url}
+            )
+            result = response.json()
+            
+        return {"webhook_url": webhook_url, "result": result}
+    except Exception as e:
+        logger.error(f"Setup webhook error: {e}")
+        return {"ok": False, "error": str(e)}
+
+# Endpoint to remove the webhook (for testing with polling)
+@api_router.get("/webhook/delete")
+async def delete_webhook():
+    """Delete Telegram webhook to enable polling mode"""
+    try:
+        import httpx
+        
+        bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
+        
+        async with httpx.AsyncClient() as http_client:
+            response = await http_client.post(
+                f"https://api.telegram.org/bot{bot_token}/deleteWebhook"
+            )
+            result = response.json()
+            
+        return {"result": result}
+    except Exception as e:
+        logger.error(f"Delete webhook error: {e}")
+        return {"ok": False, "error": str(e)}
+
 @api_router.get("/countdown")
 async def get_countdown():
     return get_countdown_data()
